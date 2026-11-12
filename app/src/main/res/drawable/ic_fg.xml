@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nota musical pixelada amarilla con sombra roja -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FF004D"
+        android:pathData="M51,33h24v6h-18v30h-6v-6h-6v6h-6v6h-6v-6h-6v-6h6v-6h12v-24z" />
+    <path android:fillColor="#FFD23F"
+        android:pathData="M48,30h24v6h-18v30h-6v-6h-6v6h-6v6h-6v-6h-6v-6h6v-6h12v-24z" />
+</vector>
