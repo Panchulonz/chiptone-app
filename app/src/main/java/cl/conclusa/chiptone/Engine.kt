@@ -52,6 +52,9 @@ class Prefs(ctx: Context) {
             .apply()
     }
 
+    fun keepAlive(): Boolean = sp.getBoolean("keepAlive", true)
+    fun setKeepAlive(v: Boolean) = sp.edit().putBoolean("keepAlive", v).apply()
+
     fun apps(): Set<String> {
         val set = sp.getStringSet("apps", Apps.DEFAULT) ?: Apps.DEFAULT
         return if (BuildConfig.PRO) set else set.intersect(Apps.FREE)

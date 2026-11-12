@@ -45,6 +45,10 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = Prefs(this)
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 1)
+        }
         window.statusBarColor = BG
         window.navigationBarColor = BG
 
@@ -132,9 +136,22 @@ class MainActivity : Activity() {
         root.addView(slider("Volumen", 10, 100, st.volume, "%") { v -> save { it.copy(volume = v) } })
         root.addView(switch("Respetar No molestar", st.respectDnd) { v -> save { it.copy(respectDnd = v) } })
 
+        section("FUNCIONAR EN SEGUNDO PLANO")
+        root.addView(switch("Mantener activo (notificación fija silenciosa)", prefs.keepAlive()) { v ->
+            prefs.setKeepAlive(v)
+            rebindListener()
+        })
+        root.addView(hint("Evita que HyperOS congele Chiptone cuando la app está cerrada. Después de cambiarlo, apaga y prende el acceso a notificaciones si no se aplica."))
+
+        section("QUITAR EL TONO DE WHATSAPP")
+        root.addView(hint("Chiptone no puede apagar el sonido de otra app: hay que dejar el tono de WhatsApp en silencio (mensajes Y grupos), manteniendo la notificación y la vibración."))
+        root.addView(button("Abrir notificaciones de WhatsApp", PANEL) { openAppNotifications("com.whatsapp") })
+        if (pro) root.addView(button("Abrir notificaciones de WhatsApp Business", PANEL) { openAppNotifications("com.whatsapp.w4b") })
+
         section("CONFIGURACIÓN DEL TELÉFONO")
         root.addView(hint(
-            "1. En WhatsApp: Ajustes → Notificaciones → Tono de notificación → Ninguno (deja la vibración).\n" +
+            "1. En WhatsApp: Ajustes → Notificaciones → Tono de notificación → Sin sonido, en Mensajes Y en Grupos (deja la vibración). " +
+            "Si aún suena, en el botón de arriba entra a cada categoría (Mensajes, Grupos) y pon Sonido: Ninguno.\n" +
             "2. Xiaomi / HyperOS: activa Inicio automático para Chiptone y en Ahorro de batería elige “Sin restricciones”, " +
             "si no, el sistema la cierra.\n" +
             "3. Chiptone no lee el contenido de tus mensajes: solo detecta qué app envió la notificación."
@@ -167,6 +184,22 @@ class MainActivity : Activity() {
                 "Escala del tramo actual: ${Music.MODES.getValue(Music.slotMode(Music.currentSlot())).name} · cambia en ${left / 60000} min"
             } else ""
         }
+    }
+
+    private fun openAppNotifications(pkg: String) {
+        try {
+            startActivity(Intent(AndroidSettings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(AndroidSettings.EXTRA_APP_PACKAGE, pkg))
+        } catch (_: Exception) {
+            startActivity(Intent(AndroidSettings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$pkg")))
+        }
+    }
+
+    private fun rebindListener() {
+        try {
+            android.service.notification.NotificationListenerService.requestRebind(
+                ComponentName(this, ChiptoneListener::class.java))
+        } catch (_: Exception) { }
     }
 
     private fun listenerEnabled(): Boolean {
